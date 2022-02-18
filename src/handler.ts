@@ -1,9 +1,10 @@
-import { get_token } from "./auth";
+import { GoogleJwtAuthenticater } from "./auth";
 
 type RespJson = Record<string, any>
 
 export async function handleRequest(request: Request): Promise<Response> {
-  const token = await get_token()
+  const authenticator = new GoogleJwtAuthenticater('https://www.googleapis.com/auth/calendar', 'platform-api-google-group@pure-phalanx-300410.iam.gserviceaccount.com', 'https://oauth2.googleapis.com/token')
+  const token = await authenticator.get_token()
   const cal_url = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 
   const response2 = await fetch(cal_url, {
