@@ -1,6 +1,9 @@
 import * as jose from 'jose'
 
 type RespJson = Record<string, any>
+declare global {
+    const cron_worker: KVNamespace;
+}
 
 export class GoogleJwtAuthenticater {
 
@@ -13,7 +16,7 @@ export class GoogleJwtAuthenticater {
         private audience: string
     ) {}
 
-    private async sign_jwt() {
+    private async signJwt() {
         const privateKey = await this.getPrivateKey();
         const jwt = await new jose.SignJWT({ 'scope': this.scope })
         .setProtectedHeader({ alg: 'RS256', typ: 'JWT'})
@@ -27,13 +30,19 @@ export class GoogleJwtAuthenticater {
 
     private async getPrivateKey() {
         const algorithm = 'RS256'
-        const pkcs8 = `insert-key-here`
+        // @ts-ignore
+        const pkcs8: string = await cron_worker.get("private_key")
         const privateKey = await jose.importPKCS8(pkcs8, algorithm)
         return privateKey;
     }
 
-    public async get_token() {
-        let jwt = await this.sign_jwt();
+    public async setPrivateKey(private_key: string) {
+        const pk = await cron_worker.put("private_key", private_key)
+        return pk
+    }
+
+    public async getToken() {
+        let jwt = await this.signJwt();
         const url = "https://oauth2.googleapis.com/token";
         let data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
