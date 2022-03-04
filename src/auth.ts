@@ -31,14 +31,13 @@ export class GoogleJwtAuthenticater {
     private async getPrivateKey() {
         const algorithm = 'RS256'
         // @ts-ignore
-        const pkcs8: string = await cron_worker.get("private_key")
+        var pkcs8: string = await cron_worker.get("private_key");
+        if (!pkcs8) {
+            const env: any = (typeof process !== "undefined") ? process.env : global
+            pkcs8 = env.GOOGLE_PRIVATE_KEY
+        }
         const privateKey = await jose.importPKCS8(pkcs8, algorithm)
         return privateKey;
-    }
-
-    public async setPrivateKey(private_key: string) {
-        const pk = await cron_worker.put("private_key", private_key)
-        return pk
     }
 
     public async getToken() {

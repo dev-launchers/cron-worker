@@ -10,6 +10,9 @@ kv_namespaces = [
     { binding = "cron_worker", id = "5af2d9d68cec4486a3f8bb28af2adfb5" }
 ]
 
+[miniflare]
+env_path = ".env"
+
 [build]
 command = "npm install && npm run build"
 [build.upload]

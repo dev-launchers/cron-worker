@@ -13,7 +13,12 @@ Requirement:
 
 more details on the version to be come.
 
-## Building + Running 
+## Environment setup
+
+`cp .env.example .env`
+fill in the environment var in the file.
+
+## Building + Running
 building the application:
 `npm run build`
 
