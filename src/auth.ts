@@ -9,6 +9,8 @@ export class GoogleJwtAuthenticater {
 
     readonly auth_url: string = "https://oauth2.googleapis.com/token";
     readonly expiration: string = "1h";
+    readonly typ: string = "JWT";
+    readonly alg: string = "RS256";
 
     constructor(
         private scope: string,
@@ -19,19 +21,18 @@ export class GoogleJwtAuthenticater {
     private async signJwt() {
         const privateKey = await this.getPrivateKey();
         const jwt = await new jose.SignJWT({ 'scope': this.scope })
-        .setProtectedHeader({ alg: 'RS256', typ: 'JWT'})
+        .setProtectedHeader({ alg: this.alg, typ: this.typ})
         .setIssuedAt()
         .setIssuer(this.issuer)
         .setAudience(this.audience)
-        .setExpirationTime('1h')
+        .setExpirationTime(this.expiration)
         .sign(privateKey)
         return jwt;
     }
 
     private async getPrivateKey() {
-        const algorithm = 'RS256'
-        // @ts-ignore
-        var pkcs8: string = await cron_worker.get("private_key");
+        const algorithm = this.alg
+        var pkcs8: string = await cron_worker.get("private_key") as string;
         if (!pkcs8) {
             const env: any = (typeof process !== "undefined") ? process.env : global
             pkcs8 = env.GOOGLE_PRIVATE_KEY
@@ -50,7 +51,7 @@ export class GoogleJwtAuthenticater {
         const response = await fetch(url, {
             method: 'POST', // *GET, POST, PUT, DELETE, etc.
             headers: {
-            'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data) // body data type must match "Content-Type" header
         });
