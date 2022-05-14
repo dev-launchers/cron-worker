@@ -21,7 +21,7 @@ export class StrapiAPI {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-            'cookie': this.token
+                'cookie': this.token
             }
         })
         const result = await response.json<RespJson>();
@@ -41,7 +41,8 @@ export class StrapiAPI {
             "identifier": username,
             "password": password
         }
-        let strapiResponse = await fetch("http://localhost:1337/auth/local", {
+        let authUrl = this.env.STRAPIBASEURL + "/auth/local"
+        let strapiResponse = await fetch(authUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
