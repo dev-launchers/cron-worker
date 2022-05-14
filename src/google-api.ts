@@ -1,13 +1,35 @@
 import * as jose from 'jose'
+import type { RespJson } from "./common"
 
-type RespJson = Record<string, any>
 declare global {
     const cron_worker: KVNamespace;
 }
 
-export class GoogleJwtAuthenticater {
+export class GoogleAPI {
+    authenticator: GoogleJwtAuthenticater;
 
-    readonly auth_url: string = "https://oauth2.googleapis.com/token";
+    constructor() {
+        this.authenticator = new GoogleJwtAuthenticater('https://www.googleapis.com/auth/calendar', 'platform-api-google-group@pure-phalanx-300410.iam.gserviceaccount.com', 'https://oauth2.googleapis.com/token')
+    }
+
+    public async getCalendarList() {
+        const token = await this.authenticator.getToken()
+        const cal_url = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
+
+        const response = await fetch(cal_url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        })
+        const list = await response.json<RespJson>();
+        return list
+    }
+}
+
+class GoogleJwtAuthenticater {
+
+    readonly authUrl: string = "https://oauth2.googleapis.com/token";
     readonly expiration: string = "1h";
     readonly typ: string = "JWT";
     readonly alg: string = "RS256";
@@ -43,17 +65,16 @@ export class GoogleJwtAuthenticater {
 
     public async getToken() {
         let jwt = await this.signJwt();
-        const url = "https://oauth2.googleapis.com/token";
         let data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
             "assertion": jwt
         }
-        const response = await fetch(url, {
-            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        const response = await fetch(this.authUrl, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data) // body data type must match "Content-Type" header
+            body: JSON.stringify(data)
         });
         const result = await response.json<RespJson>();
         const token = result['access_token']
