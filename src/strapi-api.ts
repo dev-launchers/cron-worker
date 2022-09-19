@@ -1,6 +1,7 @@
 import type { RespJson } from "./common";
 
 export class StrapiAPI {
+    static readonly GET = 'GET'
     token: string = "";
     env: any = (typeof process !== "undefined") ? process.env : global
 
@@ -30,8 +31,11 @@ export class StrapiAPI {
 
     private async getToken(): Promise<string> {
 
+        // in prod, we check for cron_worker cloudflare secret store
         var username: string = await cron_worker.get("strapi_username") as string;
         var password: string = await cron_worker.get("strapi_password") as string;
+
+        // for dev environment, we check the env variable
         if (!username || !password) {
             username = this.env.STRAPIUSERNAME;
             password =  this.env.STRAPIPASSWORD;
