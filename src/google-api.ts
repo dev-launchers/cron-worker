@@ -7,10 +7,28 @@ declare global {
 
 export class GoogleAPI {
     authenticator: GoogleJwtAuthenticater;
+    adminScopes = "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/admin.directory.group https://www.googleapis.com/auth/admin.directory.group.member https://www.googleapis.com/auth/admin.reports.audit.readonly https://www.googleapis.com/auth/admin.directory.user.security" ;
+
 
     constructor() {
-        this.authenticator = new GoogleJwtAuthenticater('https://www.googleapis.com/auth/calendar', 'platform-api-google-group@pure-phalanx-300410.iam.gserviceaccount.com', 'https://oauth2.googleapis.com/token')
+        this.authenticator = new GoogleJwtAuthenticater(this.adminScopes, 'platform-api-google-group@pure-phalanx-300410.iam.gserviceaccount.com', 'https://oauth2.googleapis.com/token')
     }
+
+    public async getAuditReports() {
+        const token = await this.authenticator.getToken();
+        const currentTime = new Date();
+        const freq = 60;
+        const startTime = currentTime.setMinutes(currentTime.getMinutes() - freq);
+        const reportUrl = `https://admin.googleapis.com/admin/reports/v1/activity/users/all/applications/meet?call_ended=${startTime}`
+        const response = await fetch(reportUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        })
+        const list = await response.json<RespJson>();
+        return list
+      }
 
     public async getCalendarList() {
         const token = await this.authenticator.getToken()
@@ -35,19 +53,20 @@ class GoogleJwtAuthenticater {
     readonly alg: string = "RS256";
 
     constructor(
-        private scope: string,
+        private scopes: string,
         private issuer: string,
         private audience: string
     ) {}
 
     private async signJwt() {
         const privateKey = await this.getPrivateKey();
-        const jwt = await new jose.SignJWT({ 'scope': this.scope })
+        const jwt = await new jose.SignJWT({ 'scope': this.scopes })
         .setProtectedHeader({ alg: this.alg, typ: this.typ})
         .setIssuedAt()
         .setIssuer(this.issuer)
         .setAudience(this.audience)
         .setExpirationTime(this.expiration)
+        .setSubject("strapi-svc@devlaunchers.com") // subject must be set https://github.com/googleapis/google-api-nodejs-client/issues/1884#issuecomment-625062805
         .sign(privateKey)
         return jwt;
     }
