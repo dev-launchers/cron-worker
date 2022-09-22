@@ -7,8 +7,8 @@ declare global {
 
 export class GoogleAPI {
     authenticator: GoogleJwtAuthenticater;
+    // the scopes has to be a string with space delimited scopes and not an array of scopes
     adminScopes = "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/admin.directory.group https://www.googleapis.com/auth/admin.directory.group.member https://www.googleapis.com/auth/admin.reports.audit.readonly https://www.googleapis.com/auth/admin.directory.user.security" ;
-
 
     constructor() {
         this.authenticator = new GoogleJwtAuthenticater(this.adminScopes, 'platform-api-google-group@pure-phalanx-300410.iam.gserviceaccount.com', 'https://oauth2.googleapis.com/token')

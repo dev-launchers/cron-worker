@@ -14,6 +14,9 @@ export async function handleRequest(request: Request): Promise<Response> {
 }
 
 function parseReports(report: RespJson) {
+  if (report == null || report.items.length == 0) {
+    return;
+  }
   for (const item of report.items) {
     for (const param of item.events[0].parameters) {
       switch (param.name) {
